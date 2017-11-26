@@ -62,12 +62,10 @@ void Car::initialize(Color carColor, int portNumber){
 	filter = KFilter();
 	filter2 = KFilter();
 	initialized = true;
-	dataout.open("labels.txt");
+  dataout.open("../labels.txt");
 	dataout.precision(10);
-	dataout << "\n" << "timeStamp" << "\t" << "dataStatus" << "\t" << "dataStatus2" << "\t"
-					<< "rx" << "\t" << "x" << "\t" << "x2" << "\t" << "xD" << "\t" << "xD2" << "\t"
-					<< "ry" << "\t" << "y" << "\t" << "y2" << "\t" << "yD" << "\t" << "yD2" << "\t"
-					<< "rpsi" << "\t" << "psi" << "\t" << "psi2" << "\t" << "psiD" << "\t" <<  "psiD2";
+	dataout << "\n" << "Counter" <<  "," << "Color" << "," << "x" << "," << "y" << ","
+       << "psi";
 }
 
 // ____________________________________________________________________________
@@ -122,10 +120,20 @@ void Car::update(Box box, std::string obstacleString){
 	if (toBeSent) send();
 
 	if(printToFile) {
-		dataout << "\n" << timeStamp << "\t" << dataStatus << "\t" << dataStatus2 << "\t"
-				<< rx << "\t" << x << "\t" << x2 << "\t" << xD << "\t" << xD2 << "\t"
-				<< ry << "\t" << y << "\t" << y2 << "\t" << yD << "\t" << yD2 << "\t"
-				<< rpsi << "\t" << psi << "\t" << psi2 << "\t" << psiD << "\t" <<  psiD2;
+    if(!cnnDatasetMode) {
+  		dataout << "\n" << timeStamp << "\t" << dataStatus << "\t" << dataStatus2 << "\t"
+  				<< rx << "\t" << x << "\t" << x2 << "\t" << xD << "\t" << xD2 << "\t"
+  				<< ry << "\t" << y << "\t" << y2 << "\t" << yD << "\t" << yD2 << "\t"
+  				<< rpsi << "\t" << psi << "\t" << psi2 << "\t" << psiD << "\t" <<  psiD2;
+    }
+    else {
+      if(cnnCapture && calibrationDone)
+      {
+        dataout << "\n" << "Data_00" << cnnCounter/100 << "," << colorToString(color) << "," << x 
+        << "," << y << "," << psi;
+        cnnCapture = false;
+      }
+    }
 	}
 }
 
@@ -153,6 +161,8 @@ void Car::printData() {
 	std::cout << "\n#detection fails: " << numDetectionFails;
 	std::cout << "\n#outliers       : " << numOutliers;
 	std::cout << "\n\n";
+  // dataout << "\n" << colorToString(color) << "\t" << timeStamp << "\t" << x 
+  //   << "\t" << y << "\t" << psi;
 }
 
 void Car::resetAngle() {

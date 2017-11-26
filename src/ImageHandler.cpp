@@ -27,8 +27,8 @@ ImageHandler::ImageHandler() {
 void ImageHandler::getBoxes() {
 	image = camera.getImage();
   if(calibrationDone && cnnDatasetMode) {
-    if(cnnCounter % 500 == 0) {
-      imwrite("../images/Data_00" + std::to_string(cnnCounter/500) + ".jpg", image);
+    if(cnnCounter % 100 == 0) {
+      imwrite("../images/Data_00" + std::to_string(cnnCounter/100) + ".jpg", image);
       cnnCapture = true;
     }
   }
