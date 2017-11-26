@@ -29,7 +29,7 @@ extern int mouseY;
 extern bool calibrationDone;
 extern bool cnnDatasetMode;
 extern int cnnCounter;
-extern bool cnnCaptuer;
+extern bool cnnCapture;
 
 extern double psiAfterBoxDetection;
 

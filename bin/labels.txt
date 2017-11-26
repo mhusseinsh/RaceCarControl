@@ -1,0 +1,2 @@
+
+timeStamp	dataStatus	dataStatus2	rx	x	x2	xD	xD2	ry	y	y2	yD	yD2	rpsi	psi	psi2	psiD	psiD2

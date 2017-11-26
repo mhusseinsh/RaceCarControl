@@ -26,6 +26,13 @@ ImageHandler::ImageHandler() {
 
 void ImageHandler::getBoxes() {
 	image = camera.getImage();
+  if(calibrationDone && cnnDatasetMode) {
+    if(cnnCounter % 500 == 0) {
+      imwrite("../images/Data_00" + std::to_string(cnnCounter/500) + ".jpg", image);
+      cnnCapture = true;
+    }
+  }
+  cnnCounter++;
 	detectBoxes();
 	std::cout << "\n#cars found     : " << cars.size();
 	std::cout << "\n#obstacles found: " << obstacles.size();
