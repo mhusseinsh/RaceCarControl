@@ -9,7 +9,8 @@ import matplotlib.pyplot as plt
 
 from keras.preprocessing.image import img_to_array, load_img
 from keras.models import Sequential, model_from_json
-from keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten
+from keras.optimizers import Adam, SGD
+from keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten, BatchNormalization
 from keras.utils import np_utils
 
 
@@ -53,11 +54,14 @@ def process_dataset(images_path, labels_path):
     # print('--------------------------------------------------------')
     # print('--------------------------------------------------------')
 def split_train_valid():
+    global count
     shuffled_index = np.random.permutation(len(images))
 
     indices_train = shuffled_index[0:int(0.8*len(images))]
     indices_valid = shuffled_index[int(0.8*len(images)):len(images)]
-
+    
+    count = indices_valid
+    
     train_data = [images[i] for i in indices_train]
     train_labels = [labels_list[i] for i in indices_train]
 
@@ -78,37 +82,52 @@ def train_network():
     cols = x[0].shape[1]
     channels = x[0].shape[2]
 
-    # print(np.array(y).shape)
+    print(np.array(x).shape)
     # y = np.array(y).reshape((-1, 1))
     # y_val = np.array(y_val).reshape((-1, 1))
 
-    print (rows, cols, channels)
-
+    #print (rows, cols, channels)
+    #exit()
+    
+    ##JUST FOR TEST
+    #for i in range(416):
+        #for j in range(3):
+            #y[i][j] = str(float(y[i][j])*1000)
+            
+    #for i in xrange(len(y_val)):
+        #for j in xrange(len(y_val[i])):
+            #y_val[i][j] = str(float(y_val[i][j])*1000)
+    #print('---------------------------------')
     cnn_m = cnn()
     # Create cnn
-    cnn_m.model.add(Conv2D(32, kernel_size=5, padding='same', data_format="channels_last", input_shape=(rows, cols, channels)))
+    cnn_m.model.add(Conv2D(32, kernel_size=3, kernel_initializer='random_uniform', bias_initializer='zeros', padding='same', data_format="channels_last", input_shape=(rows, cols, channels)))
+    cnn_m.model.add(BatchNormalization(axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True, beta_initializer='zeros', gamma_initializer='ones', moving_mean_initializer='zeros', moving_variance_initializer='ones', beta_regularizer=None, gamma_regularizer=None, beta_constraint=None, gamma_constraint=None))
     cnn_m.model.add(Activation('relu'))
-    cnn_m.model.add(MaxPooling2D(pool_size=(2, 2)))
-    cnn_m.model.add(Conv2D(16, kernel_size=3, padding='same'))
+    #cnn_m.model.add(MaxPooling2D(pool_size=(2, 2)))
+    cnn_m.model.add(Conv2D(16, kernel_size=3, kernel_initializer='random_uniform', bias_initializer='zeros', padding='same'))
+    cnn_m.model.add(BatchNormalization(axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True, beta_initializer='zeros', gamma_initializer='ones', moving_mean_initializer='zeros', moving_variance_initializer='ones', beta_regularizer=None, gamma_regularizer=None, beta_constraint=None, gamma_constraint=None))
     cnn_m.model.add(Activation('relu'))
-    cnn_m.model.add(MaxPooling2D(pool_size=(2, 2)))
-    cnn_m.model.add(Conv2D(8, kernel_size=3, padding='same'))
+    #cnn_m.model.add(MaxPooling2D(pool_size=(2, 2)))
+    cnn_m.model.add(Conv2D(8, kernel_size=3, kernel_initializer='random_uniform', bias_initializer='zeros', padding='same'))
+    cnn_m.model.add(BatchNormalization(axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True, beta_initializer='zeros', gamma_initializer='ones', moving_mean_initializer='zeros', moving_variance_initializer='ones', beta_regularizer=None, gamma_regularizer=None, beta_constraint=None, gamma_constraint=None))
     cnn_m.model.add(Activation('relu'))
-    cnn_m.model.add(MaxPooling2D(pool_size=(2, 2)))
-    cnn_m.model.add(Dropout(0.25))
+    #cnn_m.model.add(MaxPooling2D(pool_size=(2, 2)))
+    #cnn_m.model.add(Dropout(0.1))
 
     cnn_m.model.add(Flatten())
-    cnn_m.model.add(Dense(512))
-    cnn_m.model.add(Activation('relu'))
-    cnn_m.model.add(Dropout(0.5))
-    cnn_m.model.add(Dense(3))
+    #cnn_m.model.add(Dense(8))
+    #cnn_m.model.add(Activation('relu'))
+    #cnn_m.model.add(Dropout(0.1))
+    cnn_m.model.add(Dense(3, kernel_initializer='random_uniform', bias_initializer='zeros'))
     cnn_m.model.add(Activation('linear'))
-
+    #adam = Adam(lr=0.001)
+    sgd = SGD(lr=0.00001, decay=0.0005)
     # Define attributes of the cnn; categorial, optimizer_type, performance metrics
-    cnn_m.model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
+    #cnn_m.model.compile(loss='mean_squared_error', optimizer=adam, metrics=['accuracy'])
+    cnn_m.model.compile(loss='mean_squared_error', optimizer=sgd, metrics=['accuracy'])
 
     # Fit the model to the training data
-    history = cnn_m.model.fit(np.array(x), np.array(y), epochs=50, batch_size=20, validation_data=(np.array(x_val), np.array(y_val)), shuffle=True)
+    history = cnn_m.model.fit(np.array(x), np.array(y), epochs=200, batch_size=16, validation_data=(np.array(x_val), np.array(y_val)), shuffle=True)
 
     # 2. save your trained model
     # serialize model to JSON
@@ -121,7 +140,9 @@ def train_network():
 
     # list all data in history
     print(history.history.keys())
-
+    
+    print(count)
+    
     # summarize history for accuracy
     plt.plot(history.history['acc'])
     plt.plot(history.history['val_acc'])
